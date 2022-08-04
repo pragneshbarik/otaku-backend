@@ -4,7 +4,7 @@ import urllib
 import json
 from pymongo import MongoClient
 from dotenv import load_dotenv, find_dotenv
-from flask import Flask, request
+from flask import Flask, request, jsonify, make_response
 from flask_restful import Api, Resource, reqparse, abort
 from flask_cors import CORS, cross_origin
 
@@ -54,7 +54,7 @@ class OtakuFunctions :
             'genres' : [genre['name'] for genre in anime['genres']]
         }
 
-        return anime_data
+        return (anime_data)
 
     def recommender(self, uid, limit) :
         if limit>30 : limit = 30
@@ -65,7 +65,9 @@ class OtakuFunctions :
             uid_rec = anime_collection.find_one({"id" : rec_id[i]})['uid']
             rec_data.append(self.jikan_handler(uid_rec))
         
-        return rec_data
+
+        return make_response(jsonify(rec_data), 200)
+
 helper = OtakuFunctions()
 
 
