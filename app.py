@@ -9,10 +9,11 @@ from flask_restful import Api, Resource, reqparse, abort
 from flask_cors import CORS, cross_origin
 
 
-app = Flask(__name__)
-cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
+app = Flask(__name__) 
+
 api = Api(app)
+CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 load_dotenv(find_dotenv())
 password = urllib.parse.quote(os.environ.get("MONGO_PWD"))
