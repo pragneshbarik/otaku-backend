@@ -1,4 +1,5 @@
 import os
+from urllib import response
 from jikanpy import Jikan
 import urllib
 import json
@@ -12,7 +13,7 @@ from flask_cors import CORS, cross_origin
 app = Flask(__name__) 
 
 api = Api(app)
-CORS(app)
+cors = CORS(app, resources={r"*": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 load_dotenv(find_dotenv())
@@ -65,6 +66,7 @@ class OtakuFunctions :
             uid_rec = anime_collection.find_one({"id" : rec_id[i]})['uid']
             rec_data.append(self.jikan_handler(uid_rec))
         
+        response=
 
         return make_response(jsonify(rec_data), 200)
 
