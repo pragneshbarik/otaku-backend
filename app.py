@@ -8,7 +8,7 @@ from flask_cors import CORS, cross_origin
 
 
 app = Flask(__name__) 
-cors = CORS(app, resources={r"*": {"origins": "*"}})
+CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 load_dotenv(find_dotenv())
@@ -67,6 +67,7 @@ helper = OtakuFunctions()
 
 
 @app.route('/search/<string:search_string>', methods=['GET'])
+@cross_origin()
 def search(search_string) :
     if request.method == 'GET' :
         anime_list = helper.search_handler(search_string)
@@ -74,6 +75,7 @@ def search(search_string) :
 
 
 @app.route('/rec/<int:uid>/<int:limit>', methods=['GET'])
+@cross_origin()
 def recommend(uid, limit) :
     if request.method == 'GET' :
         resp = Response(jsonify(helper.recommender(uid, limit)))
