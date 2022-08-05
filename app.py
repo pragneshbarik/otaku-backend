@@ -3,7 +3,7 @@ from jikanpy import Jikan
 import urllib
 from pymongo import MongoClient
 from dotenv import load_dotenv, find_dotenv
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request, jsonify, make_response, Response
 from flask_cors import CORS, cross_origin
 
 
@@ -76,8 +76,9 @@ def search(search_string) :
 @app.route('/rec/<int:uid>/<int:limit>', methods=['GET'])
 def recommend(uid, limit) :
     if request.method == 'GET' :
-        recs = helper.recommender(uid, limit)
-        return make_response(jsonify(recs), 200)
+        resp = Response(helper.recommender(uid, limit))
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp
 
 # class Search(Resource) :
 #      def get(self, search_string) :
