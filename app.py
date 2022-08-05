@@ -76,7 +76,7 @@ def search(search_string) :
 @app.route('/rec/<int:uid>/<int:limit>', methods=['GET'])
 def recommend(uid, limit) :
     if request.method == 'GET' :
-        resp = Response(helper.recommender(uid, limit))
+        resp = Response(jsonify(helper.recommender(uid, limit)))
         resp.headers['Access-Control-Allow-Origin'] = '*'
         return resp
 
