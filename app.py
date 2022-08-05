@@ -58,7 +58,7 @@ class OtakuFunctions :
             '$match' : {'id': { '$in' : rec_id}}
         }, {'$sort' : {'popularity': 1}},
         {'$project' : {'_id' : 0,'uid' : 1}}])
-        uid_list = [uid_in_dict['uid'] for uid_in_dict in list(uid_rec)]
+        uid_list = [uid_in_dict['uid'] for uid_in_dict in list(uid_rec)[:limit]]
         rec_animes = self.database_handler(uid_list)
         print(rec_animes)
         return list(rec_animes)
