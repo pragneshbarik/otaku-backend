@@ -1,5 +1,4 @@
 import os
-from jikanpy import Jikan
 import urllib
 from pymongo import MongoClient
 from dotenv import load_dotenv, find_dotenv
@@ -16,11 +15,12 @@ password = urllib.parse.quote(os.environ.get("MONGO_PWD"))
 connection_string = f"mongodb+srv://pragnesh-barik:{password}@cluster0.rkh1i.mongodb.net/?retryWrites=true&w=majority"
 client = MongoClient(connection_string)
 
-anime_collection = client["otaku-db"]["anime-picks"]
+anime_picks = client["otaku-db"]["anime-picks"]
+anime_database = client["otaku-db"]["anime-data"]
 
 class OtakuFunctions :
     def search_handler(self, search_string) :
-        animes=anime_collection.aggregate([
+        animes=anime_picks.aggregate([
         {
             '$search': {
             'index': 'searchAnime',
@@ -38,30 +38,30 @@ class OtakuFunctions :
         return (list(animes))
     
     
-    def jikan_handler(self, uid) :
-        jikan = Jikan()
-        anime = jikan.anime(uid)
+    def database_handler(self, uid_list) :
+        # anime=anime_database.find_one({'uid': uid})
+        animes = anime_database.aggregate([{
+            '$match' : {'uid': { '$in' : uid_list}}
+        }, 
+        {'$project' : {'_id' : 0}}])
+        
+        return animes
 
-        anime_data = {
-            'title' : anime['title'],
-            'score': anime['score'],
-            'image_url': anime['image_url'],
-            'trailer_url': anime['trailer_url'],
-            'genres' : [genre['name'] for genre in anime['genres']]
-        }
 
-        return (anime_data)
 
     def recommender(self, uid, limit) :
-        if limit>30 : limit = 30
-        anime = anime_collection.find_one({"uid" : uid})
+        anime = anime_picks.find_one({"uid" : uid})
         rec_id = anime['recommendations']
         rec_data = []
-        for i in range(limit) :
-            uid_rec = anime_collection.find_one({"id" : rec_id[i]})['uid']
-            rec_data.append(self.jikan_handler(uid_rec))
-
-        return rec_data
+        # uid_rec = anime_picks.find_one({"id" : rec_id[i]})['uid']
+        uid_rec = anime_picks.aggregate([{
+            '$match' : {'id': { '$in' : rec_id}}
+        }, {'$sort' : {'popularity': 1}},
+        {'$project' : {'_id' : 0,'uid' : 1}}])
+        uid_list = [uid_in_dict['uid'] for uid_in_dict in list(uid_rec)]
+        rec_animes = self.database_handler(uid_list)
+        print(rec_animes)
+        return list(rec_animes)
 
 helper = OtakuFunctions()
 
@@ -71,15 +71,14 @@ helper = OtakuFunctions()
 def search(search_string) :
     if request.method == 'GET' :
         anime_list = helper.search_handler(search_string)
-        return make_response(jsonify(anime_list), 200)
+        return jsonify(anime_list)
 
 
 @app.route('/rec/<int:uid>/<int:limit>', methods=['GET'])
 @cross_origin()
 def recommend(uid, limit) :
     if request.method == 'GET' :
-        resp = Response(jsonify(helper.recommender(uid, limit)))
-        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp = jsonify(helper.recommender(uid, limit))
         return resp
 
 # class Search(Resource) :
