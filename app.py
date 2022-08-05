@@ -1,18 +1,13 @@
 import os
-from urllib import response
 from jikanpy import Jikan
 import urllib
-import json
 from pymongo import MongoClient
 from dotenv import load_dotenv, find_dotenv
 from flask import Flask, request, jsonify, make_response
-from flask_restful import Api, Resource, reqparse, abort
 from flask_cors import CORS, cross_origin
 
 
 app = Flask(__name__) 
-
-api = Api(app)
 cors = CORS(app, resources={r"*": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 
@@ -65,33 +60,44 @@ class OtakuFunctions :
         for i in range(limit) :
             uid_rec = anime_collection.find_one({"id" : rec_id[i]})['uid']
             rec_data.append(self.jikan_handler(uid_rec))
-        
-        response=
 
-        return make_response(jsonify(rec_data), 200)
+        return rec_data
 
 helper = OtakuFunctions()
 
 
-class Search(Resource) :
-     def get(self, search_string) :
+@app.route('/search/<string:search_string>', methods=['GET'])
+def search(search_string) :
+    if request.method == 'GET' :
         anime_list = helper.search_handler(search_string)
-        return (anime_list)
+        return make_response(jsonify(anime_list), 200)
 
 
-class JikanAPI(Resource) :    
-    def get(self, uid) :
-        return helper.jikan_handler(uid)
+@app.route('/rec/<int:uid>/<int:limit>', methods=['GET'])
+def recommend(uid, limit) :
+    if request.method == 'GET' :
+        recs = helper.recommender(uid, limit)
+        return make_response(jsonify(recs), 200)
 
-class Recommend(Resource) :
-    def get(self, uid, limit) :
-        return helper.recommender(uid, limit)
+# class Search(Resource) :
+#      def get(self, search_string) :
+#         anime_list = helper.search_handler(search_string)
+#         return (anime_list)
+
+
+# class JikanAPI(Resource) :    
+#     def get(self, uid) :
+#         return helper.jikan_handler(uid)
+
+# class Recommend(Resource) :
+#     def get(self, uid, limit) :
+#         return helper.recommender(uid, limit)
 
 
 
-api.add_resource(Search, '/search/<string:search_string>')
-api.add_resource(JikanAPI, '/jikan?q=<int:uid>')
-api.add_resource(Recommend, '/rec/<int:uid>/<int:limit>')
+# api.add_resource(Search, '/search/<string:search_string>')
+# api.add_resource(JikanAPI, '/jikan?q=<int:uid>')
+# api.add_resource(Recommend, '/rec/<int:uid>/<int:limit>')
 
 if __name__ == "__main__" :
     app.run(debug=True)
