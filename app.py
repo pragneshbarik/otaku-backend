@@ -74,7 +74,7 @@ helper = OtakuFunctions()
 @cross_origin()
 def greet() :
     greetings = {
-        "Greeting Message" : "Hi! Welcome to Otaku API, maintained by Pragnesh Barik.",
+        "Greeting Message" : "Hi! Welcome to Otaku API, maintained by www.github.com/pragneshbarik",
         "Routes": {
             "/" : "Greetings",
             "/search/<search_string>" : "Get 30 matching Anime titles and UID matching <search_string>.",
@@ -83,6 +83,7 @@ def greet() :
             }
         }
     return (greetings)
+
 
 @app.route('/search/<string:search_string>', methods=['GET'])
 @cross_origin()
