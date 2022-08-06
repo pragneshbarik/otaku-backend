@@ -1,3 +1,4 @@
+import json
 import os
 import urllib
 from pymongo import MongoClient
@@ -32,12 +33,16 @@ class OtakuFunctions :
             }
         }
         }, 
-        {'$limit' : 20}, 
+        {'$limit' : 30}, 
         {'$project' : {'_id':0, 'uid':1, 'title':1}}])
         
         return (list(animes))
     
-    
+    def get_anime_by_id(self, uid) :
+        anime = anime_database.find_one({'uid' : uid}, {'_id': 0})
+        return anime
+
+
     def database_handler(self, uid_list) :
         # anime=anime_database.find_one({'uid': uid})
         animes = anime_database.aggregate([{
@@ -60,11 +65,24 @@ class OtakuFunctions :
         {'$project' : {'_id' : 0,'uid' : 1}}])
         uid_list = [uid_in_dict['uid'] for uid_in_dict in list(uid_rec)[:limit]]
         rec_animes = self.database_handler(uid_list)
-        print(rec_animes)
         return list(rec_animes)
 
 helper = OtakuFunctions()
 
+
+@app.route('/')
+@cross_origin()
+def greet() :
+    greetings = {
+        "Greeting Message" : "Hi! Welcome to Otaku API, maintained by Pragnesh Barik.",
+        "Routes": {
+            "/" : "Greetings",
+            "/search/<search_string>" : "Get 30 matching Anime titles and UID matching <search_string>.",
+            "/anime/<uid>" : "Get anime data of the requested <uid>.",
+            "/rec/<uid>/<limit>" : "Get recommendations of the requested <uid> limit the number of recommendations by <limit>.",
+            }
+        }
+    return (greetings)
 
 @app.route('/search/<string:search_string>', methods=['GET'])
 @cross_origin()
@@ -72,6 +90,14 @@ def search(search_string) :
     if request.method == 'GET' :
         anime_list = helper.search_handler(search_string)
         return jsonify(anime_list)
+
+
+@app.route('/animes/<int:uid>', methods=['GET'])
+@cross_origin()
+def anime_by_uid(uid) :
+    if request.method == 'GET' :
+        resp = jsonify(helper.get_anime_by_id(uid))
+        return resp
 
 
 @app.route('/rec/<int:uid>/<int:limit>', methods=['GET'])
